@@ -10,12 +10,6 @@ Este agente está diseñado para asistir a docentes en la creación de clases, p
 
 ## Herramientas disponibles
 
-### `obtener_hora`
-Devuelve la hora actual del sistema.
-
-### `listar_archivos`
-Lista archivos del directorio.
-
 ### `crear_presentacion_educativa`
 Genera una presentación desde cero.
 
