@@ -10,35 +10,6 @@ mcp = FastMCP("MiAgenteLocal")
 
 # --- Definición de Herramientas (Tools) ---
 
-
-@mcp.tool()
-def obtener_hora() -> str:
-    """Devuelve la fecha y hora actual del sistema."""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
-@mcp.tool()
-def listar_archivos(directorio: str = ".") -> str:
-    """
-    Lista los archivos en un directorio local.
-    Args:
-        directorio: Ruta del directorio (por defecto es el actual).
-    """
-    try:
-        files = os.listdir(directorio)
-        return (
-            f"Archivos en '{directorio} escribirlo en formato json': {', '.join(files)}"
-        )
-    except Exception as e:
-        return f"Error al leer directorio: {str(e)}"
-
-
-@mcp.tool()
-def calcular_suma(a: int, b: int) -> int:
-    """Suma dos números enteros."""
-    return a + b
-
-
 @mcp.tool()
 def crear_presentacion_educativa(
     contenido: list, nombre_archivo: str = "presentacion_educativa.pptx"
