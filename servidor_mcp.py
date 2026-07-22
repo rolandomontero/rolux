@@ -79,7 +79,7 @@ def procesar_referencias_archivo(mensaje, base_dir=None, workspace_root=None):
             reemplazo = (
                 f"\n\n[Instrucción cargada desde archivo: {ruta_archivo.name}]\n"
                 f"{contenido}\n"
-            )
+            ) 
             archivos_leidos.append({
                 "nombre": ruta_archivo.name,
                 "ruta": str(ruta_archivo),
