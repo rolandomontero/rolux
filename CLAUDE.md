@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Activate Virtual Environment: `utp\Scripts\activate.bat`
 - Quick Start (Local): Run `inicio.bat`
 - Quick Start (Cloud): Run `inicio_cloud.bat`
+- Quick Start (Claude-macOS): Run `inicio_claude.sh`
 
 ### Running the Server
 - Start MCP Server: `python servidor_mcp.py`
