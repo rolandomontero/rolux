@@ -1,0 +1,5 @@
+<launchd>
+  <name>rolux</name>
+  <program>rolux</program>
+  <directory>/Volumes/MisApps/Documentos/www/rolux</directory>
+</launchd>

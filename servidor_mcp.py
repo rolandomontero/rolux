@@ -1,9 +1,100 @@
 # servidor_mcp.py
-import datetime
+
 import os
 from mcp.server.fastmcp import FastMCP
 from pptx import Presentation
 from pptx.util import Inches, Pt
+
+from pathlib import Path
+import re
+
+class Color:
+    USER = "\033[38;5;81m"
+    ASSISTANT = "\033[38;5;220m"
+    TOOL = "\033[38;5;214m"
+    RESET = "\033[0m"
+    GRAY = "\033[38;5;245m"
+
+
+# ============================================================
+# 4) PROCESAMIENTO DE REFERENCIAS A ARCHIVOS
+# ============================================================
+
+def resolver_ruta_archivo(path_referencia, base_dir=None, workspace_root=None):
+    base_dir = Path(base_dir or os.getcwd()).resolve()
+    workspace_root = Path(workspace_root or base_dir).resolve()
+    referencia = (path_referencia or "").strip().strip('"').strip("'")
+
+    if not referencia:
+        return None
+
+    if referencia.startswith("~"):
+        referencia = os.path.expanduser(referencia)
+
+    candidatos = []
+    if os.path.isabs(referencia):
+        candidatos.append(Path(referencia))
+    else:
+        candidatos.extend([
+            base_dir / referencia,
+            workspace_root / referencia,
+            Path(referencia),
+        ])
+
+    for candidato in candidatos:
+        if candidato.exists():
+            return candidato.resolve()
+
+    return None
+
+
+def procesar_referencias_archivo(mensaje, base_dir=None, workspace_root=None):
+    if not mensaje:
+        return mensaje, []
+
+    base_dir = Path(base_dir or os.getcwd()).resolve()
+    workspace_root = Path(workspace_root or base_dir).resolve()
+    mensaje_procesado = mensaje
+    archivos_leidos = []
+
+    patron = re.compile(r"@file:(?P<ruta>.+?)(?=(?:\s@file:)|$)")
+
+    for coincidencia in patron.finditer(mensaje_procesado):
+        raw_path = coincidencia.group("ruta").strip()
+        raw_path = raw_path.rstrip(".,;:!? ")
+
+        if raw_path.startswith(("\"", "'")) and raw_path.endswith(("\"", "'")) and len(raw_path) >= 2:
+            raw_path = raw_path[1:-1]
+
+        ruta_archivo = resolver_ruta_archivo(raw_path, base_dir=base_dir, workspace_root=workspace_root)
+
+        if ruta_archivo is None:
+            reemplazo = f"\n\n[Referencia a archivo no encontrada: {raw_path}]\n"
+        else:
+            try:
+                contenido = ruta_archivo.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                contenido = ruta_archivo.read_text(encoding="latin-1")
+
+            reemplazo = (
+                f"\n\n[Instrucción cargada desde archivo: {ruta_archivo.name}]\n"
+                f"{contenido}\n"
+            )
+            archivos_leidos.append({
+                "nombre": ruta_archivo.name,
+                "ruta": str(ruta_archivo),
+                "contenido": contenido,
+            })
+
+        mensaje_procesado = (
+            mensaje_procesado[:coincidencia.start()]
+            + reemplazo
+            + mensaje_procesado[coincidencia.end():]
+        )
+
+    return mensaje_procesado, archivos_leidos
+
+
 
 # Inicializamos el servidor MCP
 mcp = FastMCP("MiAgenteLocal")
@@ -126,6 +217,22 @@ def crear_presentacion_desde_plantilla(
     except Exception as e:
         return f"Error al crear la presentación desde plantilla: {str(e)}"
 
+@mcp.tool()
+def read_file(path: str):
+    """
+    Lee el contenido de un archivo dentro del workspace o por ruta absoluta.
+    """
+   
+    ruta_archivo = resolver_ruta_archivo(path, base_dir=os.getcwd(), workspace_root=os.getcwd())
+    if ruta_archivo is None:
+        return {"path": path, "error": "Archivo no encontrado"}
+
+    try:
+        contenido = ruta_archivo.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        contenido = ruta_archivo.read_text(encoding="latin-1")
+        
+    return {"path": str(ruta_archivo), "content": contenido}
 
 # Si ejecutamos este script directamente, arranca el servidor MCP
 if __name__ == "__main__":

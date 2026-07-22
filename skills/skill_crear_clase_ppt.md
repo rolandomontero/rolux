@@ -19,6 +19,7 @@ El agente debe:
 1. **Interpretar la solicitud del docente**, por ejemplo:  
    - “Genera una clase de química sobre enlaces covalentes para 2° medio”.
    - “Haz una presentación de matemáticas sobre funciones lineales”.
+   - "Crea una presentación de la Clase 14:Química - 2º Medio".
 
 2. **Construir automáticamente**:
    - Diccionario `reemplazos` para la plantilla.
@@ -31,6 +32,10 @@ plantilla_path: str,
 reemplazos: dict,
 contenido_slides: list,
 nombre_archivo: str
+)
+
+crear_presentacion_educativa(
+    contenido: list, nombre_archivo: str = "presentacion_educativa.pptx"
 )
 
 

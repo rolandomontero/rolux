@@ -3,7 +3,7 @@ import logging
 import os
 import ollama
 from httpx import Timeout, HTTPError
-from servidor_mcp import crear_presentacion_desde_plantilla, obtener_hora, listar_archivos, calcular_suma
+from servidor_mcp import crear_presentacion_desde_plantilla
 
 # ---------------------------------------------------------
 # 1) DESACTIVAR LOGS DE OLLAMA Y HTTPX
