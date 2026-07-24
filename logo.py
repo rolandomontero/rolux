@@ -21,16 +21,15 @@ __all__ = [
 ]
 
 avatar = [
-"   ╭───────╮    ",
-" ╭─╯ XX XX ╰─╮  ",
-" │ X X  X X  │  ",
-" │  ╲╱  ╲╱   │  ",
-" │  ╱╲  ╱╲   │  ",
-" │  XX  XX   │  ",
-" ╰─╮  XX  ╭──╯  ",
-"   ╰──────╯     ",
+"       o      ",
+"     ╔══╗     ",
+"     |o |    ",
+"     | o|     ",
+"    ╱   o╲    ",
+"   ╱~~~~~ ╲   ",
+"  ╱▒▒▒▒▒▒▒ ╲  ",
+" ╰──────────╯ ", 
 ]
-
 # Definición del texto formateado
 text_0 = Text()
 text_0.append("Rolux UTP", style="bold green")

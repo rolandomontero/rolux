@@ -2,8 +2,10 @@ import datetime
 import logging
 import os
 import ollama
+import logo
 from httpx import Timeout, HTTPError
-from servidor_mcp import crear_presentacion
+from servidor_mcp import crear_presentacion, read_file, procesar_referencias_archivo
+from logo import Color, console
 
 # ---------------------------------------------------------
 # 1) DESACTIVAR LOGS DE OLLAMA Y HTTPX
@@ -246,6 +248,7 @@ def despachar_tool(name: str, arguments: dict):
 MODELO = "gemma4:31b-cloud" # "qwen3:0.6b" # "qwen3:0.6b" 
 
 def ciclo_agente(model: str = MODELO):
+    logo.mostrar_logo()
     contexto = cargar_contexto()
     print(f"Agente de clases PPT listo con {model}.\nEscribe 'salir' para terminar.\n")
 
@@ -256,7 +259,16 @@ def ciclo_agente(model: str = MODELO):
         if user_input.lower().strip() in {"salir", "exit", "quit"}:
             break
 
-        historial.append({"role": "user", "content": user_input})
+
+        mensaje_procesado, archivos_leidos = procesar_referencias_archivo(
+        user_input,
+        base_dir=os.getcwd(),
+        workspace_root=os.getcwd(), )
+
+        if archivos_leidos:
+            console.print(f"[{Color.GRAY}][Archivos cargados: {', '.join(archivo['nombre'] for archivo in archivos_leidos)}][/{Color.GRAY}]")
+
+        historial.append({"role": "user", "content": mensaje_procesado})
         print("[Agente] Procesando tu solicitud...")
         
         respuesta = ollama.chat(

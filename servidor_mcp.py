@@ -4,15 +4,11 @@ import os
 from mcp.server.fastmcp import FastMCP
 from pptx import Presentation
 from pptx.util import Inches, Pt
-
 from pathlib import Path
 import re
 
-from logo import Color
-
-
 # ============================================================
-# 4) PROCESAMIENTO DE REFERENCIAS A ARCHIVOS
+#  PROCESAMIENTO DE REFERENCIAS A ARCHIVOS
 # ============================================================
 
 def resolver_ruta_archivo(path_referencia, base_dir=None, workspace_root=None):
@@ -41,7 +37,6 @@ def resolver_ruta_archivo(path_referencia, base_dir=None, workspace_root=None):
             return candidato.resolve()
 
     return None
-
 
 def procesar_referencias_archivo(mensaje, base_dir=None, workspace_root=None):
     if not mensaje:
@@ -89,8 +84,6 @@ def procesar_referencias_archivo(mensaje, base_dir=None, workspace_root=None):
 
     return mensaje_procesado, archivos_leidos
 
-
-
 def aplicar_formato_markdown(paragraph, texto):
     """
     Procesa texto básico de markdown (negritas y cursivas) y lo aplica a un párrafo de PowerPoint.
@@ -119,7 +112,10 @@ def aplicar_formato_markdown(paragraph, texto):
             run = paragraph.add_run()
             run.text = part
 
-# Inicializamos el servidor MCP
+ 
+# ============================================================
+#  INICIALIZACIÓN DEL SERVIDOR MCP
+# ============================================================
 
 mcp = FastMCP("MiAgenteLocal")
 
@@ -169,6 +165,8 @@ def crear_presentacion(
             best_layout = prs.slide_layouts[2] if len(prs.slide_layouts) > 1 else prs.slide_layouts[2]
 
         # 2. Añadir las diapositivas pedagógicas
+        normalize_newlines = lambda text: text.replace("\\n", "\n") if isinstance(text, str) else text
+
         for slide_data in contenido_slides:
             slide = prs.slides.add_slide(best_layout)
 
@@ -187,14 +185,14 @@ def crear_presentacion(
                     tf.text = ""
                     for point in text_content:
                         p = tf.add_paragraph()
-                        aplicar_formato_markdown(p, point)
+                        aplicar_formato_markdown(p, normalize_newlines(point))
                 else:
                     tf = body.text_frame
                     tf.text = ""
                     p = tf.paragraphs[0] if tf.paragraphs else tf.add_paragraph()
-                    aplicar_formato_markdown(p, str(text_content))
+                    aplicar_formato_markdown(p, normalize_newlines(str(text_content)))
 
-        prs.save(nombre_archivo)
+        prs.save('PPTX/' + nombre_archivo)
         return f"Presentación desde plantilla creada exitosamente: {nombre_archivo}"
     except Exception as e:
         return f"Error al crear la presentación desde plantilla: {str(e)}"
