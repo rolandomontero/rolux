@@ -44,7 +44,7 @@ Quiero una clase de química sobre enlaces iónicos.
 **Asistente:**  
 ```json
 {
-  "tool": "crear_presentacion_desde_plantilla",
+  "tool": "crear_presentacion",
   "arguments": {
     "plantilla_path": "PLANTILLA_QCA.pptx",
     "reemplazos": {

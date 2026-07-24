@@ -124,54 +124,6 @@ def aplicar_formato_markdown(paragraph, texto):
 mcp = FastMCP("MiAgenteLocal")
 
 # --- Definición de Herramientas (Tools) ---
-
-@mcp.tool()
-def crear_presentacion_educativa(
-    contenido: list, nombre_archivo: str = "presentacion_educativa.pptx"
-) -> str:
-    """
-    Crea una presentación de PowerPoint basada en una estructura pedagógica.
-
-    Args:
-        contenido: Una lista de diccionarios, donde cada elemento representa una diapositiva.
-                   Cada diccionario debe tener 'titulo' y 'cuerpo' (texto o lista de puntos).
-                   Se recomienda seguir la secuencia de 13 diapositivas del Architecto Educativo.
-        nombre_archivo: El nombre del archivo .pptx a generar.
-    """
-    try:
-        prs = Presentation()
-
-        for slide_data in contenido:
-            # Usar layout de Título y Cuerpo (generalmente índice 1)
-            slide_layout = prs.slide_layouts[1]
-            slide = prs.slides.add_slide(slide_layout)
-
-            # Título
-            title = slide.shapes.title
-            title.text = slide_data.get("titulo", "Sin Título")
-
-            # Cuerpo
-            body = slide.placeholders[1]
-            text_content = slide_data.get("cuerpo", "")
-
-            if isinstance(text_content, list):
-                tf = body.text_frame
-                tf.text = ""  # Limpiar default
-                for point in text_content:
-                    p = tf.add_paragraph()
-                    aplicar_formato_markdown(p, point)
-            else:
-                tf = body.text_frame
-                tf.text = ""
-                p = tf.paragraphs[0] if tf.paragraphs else tf.add_paragraph()
-                aplicar_formato_markdown(p, str(text_content))
-
-        prs.save(nombre_archivo)
-        return f"Presentación creada exitosamente: {nombre_archivo}"
-    except Exception as e:
-        return f"Error al crear la presentación: {str(e)}"
-
-
 @mcp.tool()
 def crear_presentacion(
     plantilla_path: str,
