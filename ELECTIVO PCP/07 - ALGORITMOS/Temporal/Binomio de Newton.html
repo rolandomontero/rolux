@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<HTML>
+	<HEAD>
+		<TITLE>BINOMIO_NEWTON</TITLE>
+	</HEAD>
+	<BODY onload="binomio_newton();">
+		<SCRIPT type="text/javascript">
+			//Este codigo ha sido generado por el modulo psexport 20160506-w32 de PSeInt.
+			//Es posible que el codigo generado no sea completamente correcto. Si encuentra
+			//errores por favor reportelos en el foro (http://pseint.sourceforge.net).
+
+			// Función Factorial
+			function factorial(n) {
+				var f, i;
+				f = 1;
+				for (i=1;i<=n;i++) {
+					f = f*i;
+				}
+				if (n==0) {
+					f = 1;
+				}
+				return f;
+			}
+			
+			// Función Combinatoria
+			function combinar(n, k) {
+				var c, denominador, numerador;
+				numerador = factorial(n);
+				denominador = factorial(k)*factorial(n-k);
+				c = numerador/denominador;
+				return c;
+			}
+			
+			// Algorito para Binomio de Newton
+			function binomio_newton() {
+				var a, b, i, n, nck;
+				var binomio = new String();
+				n = Number(prompt("Ingresa un valor para n "));
+				document.write("Binomio de Newton para n =", n , '<BR/>');
+				
+				for (i=0;i<=n;i++) {
+					nck = combinar(n,i);
+					a = n-i;
+					b = i;
+					switch (i) {
+					case 0:
+						binomio = "a^"+String(n)+" ";
+						break;
+					case 1:
+						binomio = binomio+"+ "+String(nck)+"a^"+String(a)+"*b ";
+						break;
+					case (n-1):
+						binomio = binomio+"+ "+String(nck)+"a*b^"+String(b)+" ";
+						break;
+					case n:
+						binomio = binomio+"+ b^"+String(n)+" ";
+						break;
+					default:
+						binomio = binomio+"+ "+String(nck)+"a^"+String(a)+"*b^"+String(b)+" ";
+					}
+				}
+				document.write(binomio,'<BR/>');
+			}
+			
+		</SCRIPT>
+	</BODY>
+</HTML>

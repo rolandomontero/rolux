@@ -5,7 +5,7 @@ import ollama
 import logging 
 
 # Tools MCP reales
-from servidor_mcp import obtener_hora, listar_archivos, crear_presentacion_desde_plantilla
+from servidor_mcp import crear_presentacion_desde_plantilla
 # ---------------------------------------------------------
 # 1) DESACTIVAR LOGS DE OLLAMA Y HTTPX
 # ---------------------------------------------------------
@@ -65,8 +65,7 @@ Sigue las reglas definidas en los agentes y skills cargados.
 # ============================================================
 
 TOOLS = {
-    "obtener_hora": obtener_hora,
-    "listar_archivos": listar_archivos,
+
     "crear_presentacion_desde_plantilla": crear_presentacion_desde_plantilla,
 }
 
@@ -80,6 +79,7 @@ def claude_chat(modelo, mensaje_usuario):
 
     print(f"{Color.ASSISTANT}Claude‑Local:{Color.RESET} ", end="", flush=True)
 
+    # Inicio Chat con el modelo, habilitando el streaming
     stream = ollama.chat(
         model=modelo,
         stream=True,

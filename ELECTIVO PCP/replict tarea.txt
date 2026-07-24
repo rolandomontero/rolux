@@ -1,0 +1,14 @@
+Proyectil
+
+ACTIVIDAD #2: TIRO VERTICALEl objetivo de esta actividad es obtener información o un diseño a partir de un producto u objeto, con el fin de determinar cuáles son sus componentes y de qué manera interactúan entre sí y cuál fue el proceso de creación. Esta técnica puede servir, por ejemplo, para entender cómo funciona internamente un objeto o para mejorarlo.Mediante el movimiento de las teclas de flechas determina ángulo y velocidad inicial del proyectil.*Estudie el programa y modifique de tal manera que en forma aleatoria aparezca por pantalla un barco y pueda ser derribado.*Incluya sonido y efecto de explosión.
+
+
+
+
+
+
+El objetivo de esta actividad es obtener información o un diseño a partir de un producto u objeto, con el fin de determinar cuáles son sus componentes y de qué manera interactúan entre sí y cuál fue el proceso de creación. Esta técnica puede servir, por ejemplo, para entender cómo funciona internamente un objeto o para mejorarlo.
+
+ACTIVIDAD #1: PING-PONG
+El juego está diseñado de forma que los oponentes se encuentrar horizontalmente.
+Estudie el programa y rediseñe de tal manera que la cancha la interacción sea vertical.

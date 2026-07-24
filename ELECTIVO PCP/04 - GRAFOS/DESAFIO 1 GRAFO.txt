@@ -1,0 +1,8 @@
+Objetivos: Desarrollar la habilidad del Pensamiento Computacional, en una aplicación.
+Instrucciones:
+Buscar o crear un laberinto, utilizando teorías de grafo, de tal manera que dicho laberinto sea un camino Euleriano, utilice el laberinto que se adjunta como ensayo y luego trabaje con el suyo.
+TIP1: Transforme el laberinto en cuadricula.
+TIP2: Use nomenclatura igual a MS Excel. A1, A2, B1, etc.
+TIP3: Encuentre todos los caminos posibles.
+Desarrolle la metodología, grafo y el camino recorrido (matrices, caminos, circuitos, etc.).
+El trabajo debe ser original e individual.

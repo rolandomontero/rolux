@@ -1,0 +1,193 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Autor:
+# Licencia: X11/MIT license http://www.opensource.org/licenses/mit-license.php
+# Fecha:
+
+# ---------------------------
+# Importación de los módulos
+# ---------------------------
+import pygame
+from pygame.locals import QUIT
+import os
+from pygame import Rect
+import sys
+import math
+import random
+
+
+# -----------
+# Constantes
+# -----------
+WIDTH = 800
+HEIGHT = 600
+
+p_x=100
+p_y=300
+
+# ------------------------------
+# Clases y Funciones utilizadas
+# ------------------------------
+class Barco(pygame.sprite.Sprite):
+
+   def __init__(self,x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("barco.png").convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+
+
+class Proyectil(pygame.sprite.Sprite):
+    "Clase que representa el proyectil lanzado"
+
+    def __init__(self, x, y):
+        self.angulo = 45  # Ángulo alfa
+        self.veloc = 50   # Velocidad inicial
+        self.tiempo = 0
+        self.rect=Rect(x,y,10,10)
+        self.x = x
+        self.y = y
+        self.disparar = False
+        self.xreal = x
+        self.yreal = HEIGHT - self.y
+        self.reinicia = False
+
+    def update(self):
+        "actualizar la posición del proyectil" # Velocidad inicial en vx y vy
+        self.velocx = self.veloc * math.cos(math.radians(self.angulo))
+        self.velocy = self.veloc * math.sin(math.radians(self.angulo))
+
+
+        if self.disparar == True:
+            # esta en movimiento, hay que actualizar la posición
+            self.xreal = (0 + self.velocx * self.tiempo)
+            self.yreal = (0 + self.velocy * self.tiempo +
+                (-9.8 * (self.tiempo ** 2)) / 2)
+            # Corregir la posición en el eje vertical
+            self.x = self.xreal
+            self.y = HEIGHT - self.yreal
+        else:
+            # se mantiene sin disparar, por lo cual no se hace nada
+            pass
+
+        # si sale de la pantalla reiniciar la posición (a inferior izq.)
+        if (self.y > HEIGHT) or (self.x > WIDTH):
+            self.x = 0
+            self.y = HEIGHT
+            self.tiempo = 0
+            self.disparar = False
+
+# ------------------------------
+# Función principal del juego
+# ------------------------------
+
+    def limpiar(self):
+      #HOLA
+      self.rect.x = 0
+      self.rect.y = HEIGHT
+      self.tiempo = 0
+      self.disparar = False
+      self.reinicia = True
+
+
+def main():
+    pygame.init()
+    # creamos la ventana y le indicamos un titulo:
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Tiro Vertical")
+
+    # cargar imagenes
+    fondo = pygame.image.load("fondo.png").convert()
+    caleuche = Barco(100*random.randint(1,6), 300)
+
+    #Colocar las imagenes
+    screen.blit(fondo,(0,0))
+
+    #mostrar las imagenes
+    pygame.display.flip()
+
+    # se define la letra por defecto
+    fuente = pygame.font.Font(None, 20)
+
+    # se crea un proyectil a lanzar
+    bala = Proyectil(0, HEIGHT)
+
+    pygame.key.set_repeat(1, 80)  # Activa repetición de teclas
+    clock = pygame.time.Clock()
+
+    # el bucle principal del juego
+    seguir = True
+    while seguir:
+        # registramos cuanto ha pasado desde el ultimo ciclo
+        tick = clock.tick(60)
+        # Posibles entradas del teclado y mouse
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                seguir=False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if bala.angulo < 90 and bala.disparar == False:
+                        bala.angulo = bala.angulo + 1
+                elif event.key == pygame.K_DOWN:
+                    if bala.angulo > 0 and bala.disparar == False:
+                        bala.angulo = bala.angulo - 1
+                elif event.key == pygame.K_RIGHT:
+                    if bala.veloc < 100 and bala.disparar == False:
+                        bala.veloc = bala.veloc + 1
+                elif event.key == pygame.K_LEFT:
+                    if bala.veloc > 10 and bala.disparar == False:
+                        bala.veloc = bala.veloc - 1
+                elif (event.key == pygame.K_SPACE or event.key==pygame.K_RETURN):
+                    bala.disparar = True
+                elif event.key == pygame.K_ESCAPE:
+                    seguir=False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and bala.disparar == False:
+                bala.disparar = True
+
+        if bala.disparar == True:
+            # al tiempo anterior le sumamos lo transcurrido
+            bala.tiempo = bala.tiempo + (tick / 1000.0)
+
+
+        # Actualizar la posición e información
+        bala.update()
+        colision = pygame.sprite.collide_rect(bala, caleuche)
+        print(colision)
+
+        if (bala.reinicia or colision):
+          bala.limpia()
+          bala.reinicia = False
+          caleuche=Barco(100*random.randint(1,6), 300 +10*random.randint(0,6))
+
+        text = "Velocidad: %3d (m/s)   Angulo: %d   x=%d m   y=%d m " % (
+            bala.veloc, bala.angulo, bala.xreal, bala.yreal)
+        mensaje = fuente.render(text, 1, (255, 255, 255))
+
+
+      # Re dibujar los elementos en pantalla
+        screen.blit(fondo,(0,0))
+
+        todos = pygame.sprite.RenderPlain(caleuche)
+        todos.draw(screen)
+
+        screen.blit(mensaje, (15, 5))
+        pygame.draw.line(screen, (255, 255, 255), (0, 25), (640, 25), 2)
+        pygame.draw.circle(screen, (0, 0, 0), (int(bala.x), int(bala.y)), 10)
+
+
+      # actualizamos la pantalla
+        pygame.display.flip()
+
+
+
+    pygame.quit()
+    quit()
+
+
+
+if __name__ == "__main__":
+    main()
