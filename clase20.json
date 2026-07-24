@@ -1,0 +1,73 @@
+{
+  "tool": "crear_presentacion_desde_plantilla",
+  "arguments": {
+    "plantilla_path": "PLANTILLA_QCA.pptx",
+    "reemplazos": {
+      "{{NC}}": "14",
+      "{{CURSO}}": "2º Medio A",
+      "{{FECHA}}": "2026-06-09",
+      "{{ASIGNATURA}}": "Química",
+      "{{UNIDAD}}": "Soluciones Químicas",
+      "{{CONTENIDOS}}": "Solubilidad y Saturación",
+      "{{HABILIDADES}}": "Análisis de datos, Clasificación, Explicación de fenómenos químicos",
+      "{{VIRTUD}}": "Diligencia",
+      "{{OA}}": "Comprender cómo varía la solubilidad de diferentes solutos según la temperatura y su naturaleza química, clasificando soluciones como insaturadas, saturadas y sobresaturadas.",
+      "{{OC}}": "Analizar la influencia de la temperatura en la solubilidad y diferenciar los estados de saturación de una solución."
+    },
+    "contenido_slides": [
+      {
+        "titulo": "Portada: Solubilidad y Estados de Saturación",
+        "contenido": "Clase 14 - Química 2º Medio A\nFecha: Martes 9 de junio de 2026"
+      },
+      {
+        "titulo": "Objetivo de la Clase",
+        "contenido": "Analizar la variabilidad de la solubilidad según la naturaleza del soluto y la temperatura, clasificando soluciones y comprendiendo la cristalización fraccionada."
+      },
+      {
+        "titulo": "Ruta de Aprendizaje",
+        "contenido": "1. Activación: Conceptos básicos de solubilidad.\n2. Desarrollo: Curvas de solubilidad y estados de saturación.\n3. Aplicación: Cristalización y gases.\n4. Cierre: Ticket de salida y reflexión."
+      },
+      {
+        "titulo": "Activación y Normas",
+        "contenido": "Normas de convivencia: Respeto al turno de habla y uso responsable de materiales.\nPregunta activadora: ¿Por qué el azúcar se disuelve más rápido en té caliente que en té frío?"
+      },
+      {
+        "titulo": "Inicio: ¿Qué es la Solubilidad?",
+        "contenido": "Definición: Capacidad de una sustancia de disolverse en un solvente a una temperatura dada.\nEjemplos cotidianos: Sal en agua, azúcar en café, oxígeno en el agua de los peces."
+      },
+      {
+        "titulo": "Factores que afectan la Solubilidad",
+        "contenido": "1. Naturaleza química: 'Lo semejante disuelve a lo semejante' (Polaridad).\n2. Temperatura: Efecto general en sólidos vs. efecto en gases."
+      },
+      {
+        "titulo": "Clasificación de Soluciones",
+        "contenido": "• Insaturada: Contiene menos soluto del que el solvente puede disolver.\n• Saturada: Contiene la cantidad máxima de soluto permitida.\n• Sobresaturada: Contiene más soluto del límite normal (estado inestable)."
+      },
+      {
+        "titulo": "Análisis de Curvas de Solubilidad",
+        "contenido": "Interpretación de gráficos: Eje X (Temperatura) vs Eje Y (Solubilidad en g/100g H2O).\nComparativa: ¿Qué solutos aumentan drásticamente su solubilidad con el calor?"
+      },
+      {
+        "titulo": "Práctica Guiada: Clasificando Soluciones",
+        "contenido": "Ejercicio: Si a 20°C la solubilidad del KNO3 es 32g/100ml...\n- Caso A: 20g en 100ml $\rightarrow$ ¿Insaturada?\n- Caso B: 32g en 100ml $\rightarrow$ ¿Saturada?\n- Caso C: 40g en 100ml (calentado y enfriado) $\rightarrow$ ¿Sobresaturada?"
+      },
+      {
+        "titulo": "Cristalización Fraccionada",
+        "contenido": "Proceso de separación de solutos basándose en sus diferentes curvas de solubilidad mediante cambios de temperatura."
+      },
+      {
+        "titulo": "Solubilidad de los Gases",
+        "contenido": "Relación Inversa: A mayor temperatura, menor solubilidad de los gases.\nEjemplo: El agua hirviendo pierde burbujas de oxígeno; los peces sufren en aguas muy cálidas."
+      },
+      {
+        "titulo": "Ticket de Salida",
+        "contenido": "Pregunta: Si enfriamos una solución saturada de un sólido, ¿qué fenómeno ocurre y en qué estado queda la solución?"
+      },
+      {
+        "titulo": "Reflexión y Cierre",
+        "contenido": "Resumen de conceptos clave: Solubilidad $\rightarrow$ Temperatura $\rightarrow$ Saturación.\nPróxima Clase: Propiedades coligativas de las soluciones."
+      }
+    ],
+    "nombre_archivo": "Clase14_Quimica_2MedioA_Solubilidad.pptx"
+  }
+}
