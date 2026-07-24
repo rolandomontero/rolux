@@ -8,12 +8,7 @@ from pptx.util import Inches, Pt
 from pathlib import Path
 import re
 
-class Color:
-    USER = "\033[38;5;81m"
-    ASSISTANT = "\033[38;5;220m"
-    TOOL = "\033[38;5;214m"
-    RESET = "\033[0m"
-    GRAY = "\033[38;5;245m"
+from logo import Color
 
 
 # ============================================================
@@ -96,7 +91,36 @@ def procesar_referencias_archivo(mensaje, base_dir=None, workspace_root=None):
 
 
 
+def aplicar_formato_markdown(paragraph, texto):
+    """
+    Procesa texto básico de markdown (negritas y cursivas) y lo aplica a un párrafo de PowerPoint.
+    """
+    if not texto:
+        return
+
+    paragraph.text = ""
+    # Pattern to find **bold**, __bold__, *italic*, or _italic_
+    pattern = r"(\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_)"
+    parts = re.split(pattern, texto)
+
+    for part in parts:
+        if not part:
+            continue
+
+        if (part.startswith("**") and part.endswith("**")) or (part.startswith("__") and part.endswith("__")):
+            run = paragraph.add_run()
+            run.text = part[2:-2]
+            run.font.bold = True
+        elif (part.startswith("*") and part.endswith("*")) or (part.startswith("_") and part.endswith("_")):
+            run = paragraph.add_run()
+            run.text = part[1:-1]
+            run.font.italic = True
+        else:
+            run = paragraph.add_run()
+            run.text = part
+
 # Inicializamos el servidor MCP
+
 mcp = FastMCP("MiAgenteLocal")
 
 # --- Definición de Herramientas (Tools) ---
@@ -135,9 +159,12 @@ def crear_presentacion_educativa(
                 tf.text = ""  # Limpiar default
                 for point in text_content:
                     p = tf.add_paragraph()
-                    p.text = point
+                    aplicar_formato_markdown(p, point)
             else:
-                body.text = str(text_content)
+                tf = body.text_frame
+                tf.text = ""
+                p = tf.paragraphs[0] if tf.paragraphs else tf.add_paragraph()
+                aplicar_formato_markdown(p, str(text_content))
 
         prs.save(nombre_archivo)
         return f"Presentación creada exitosamente: {nombre_archivo}"
@@ -146,15 +173,15 @@ def crear_presentacion_educativa(
 
 
 @mcp.tool()
-def crear_presentacion_desde_plantilla(
+def crear_presentacion(
     plantilla_path: str,
     reemplazos: dict,
     contenido_slides: list,
     nombre_archivo: str = "presentacion_plantilla.pptx",
+    
 ) -> str:
     """
-    Crea una presentación basándose en una plantilla, reemplazando marcadores de posición
-    y añadiendo diapositivas adicionales.
+    Crea una presentación basándose en una plantilla, reemplazando marcadores de posición y añadiendo diapositivas adicionales.
 
     Args:
         plantilla_path: Ruta al archivo .pptx de la plantilla.
@@ -208,9 +235,12 @@ def crear_presentacion_desde_plantilla(
                     tf.text = ""
                     for point in text_content:
                         p = tf.add_paragraph()
-                        p.text = point
+                        aplicar_formato_markdown(p, point)
                 else:
-                    body.text = str(text_content)
+                    tf = body.text_frame
+                    tf.text = ""
+                    p = tf.paragraphs[0] if tf.paragraphs else tf.add_paragraph()
+                    aplicar_formato_markdown(p, str(text_content))
 
         prs.save(nombre_archivo)
         return f"Presentación desde plantilla creada exitosamente: {nombre_archivo}"

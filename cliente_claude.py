@@ -2,10 +2,11 @@
 import os
 import json
 import logging
-import re
-from pathlib import Path
 
 import ollama
+import logo
+from logo import Color, console
+from rich.markdown import Markdown
 
 # Tools MCP reales
 import servidor_mcp
@@ -56,7 +57,7 @@ Sigue las reglas definidas en los agentes y skills cargados.
 
 
 TOOL_IMPL = {
-    "crear_presentacion_desde_plantilla": servidor_mcp.crear_presentacion_desde_plantilla,
+    "crear_presentacion_desde_plantilla": servidor_mcp.crear_presentacion,
     "read_file": servidor_mcp.read_file,
 }
 
@@ -133,7 +134,7 @@ def claude_chat(modelo, mensaje_usuario):
     )
 
     if archivos_leidos:
-        print(f"{servidor_mcp.Color.GRAY}[Archivos cargados: {', '.join(archivo['nombre'] for archivo in archivos_leidos)}]{servidor_mcp.Color.RESET}")
+        console.print(f"[{Color.GRAY}][Archivos cargados: {', '.join(archivo['nombre'] for archivo in archivos_leidos)}][/{Color.GRAY}]")
 
     historial = [
         {"role": "system", "content": contexto},
@@ -154,14 +155,14 @@ def claude_chat(modelo, mensaje_usuario):
             nombre = llamada["function"]["name"]
             args = llamada["function"].get("arguments", {})
 
-            print(f"\n{servidor_mcp.Color.TOOL}[Tool → {nombre}]{servidor_mcp.Color.RESET}")
+            console.print(f"\n[{Color.TOOL}][Tool → {nombre}][/{Color.TOOL}]")
 
             if nombre not in TOOL_IMPL:
-                print(f"{servidor_mcp.Color.GRAY}Tool no registrada: {nombre}{servidor_mcp.Color.RESET}")
+                console.print(f"[{Color.ASSISTANT}]Tool no registrada: {nombre}[/{Color.ASSISTANT}]")
                 continue
 
             resultado = TOOL_IMPL[nombre](**args)
-            print(json.dumps(resultado, ensure_ascii=False, indent=2))
+            console.print(json.dumps(resultado, ensure_ascii=False, indent=2))
 
             historial.append(
                 {"role": "tool", "name": nombre, "content": json.dumps(resultado)}
@@ -169,28 +170,18 @@ def claude_chat(modelo, mensaje_usuario):
 
         # Segunda llamada: el modelo recibe el resultado de la tool y puede confirmar o explicar
         respuesta = ollama.chat(
-            model=modelo,
-            messages=historial,
-        )
+           model=modelo,
+           messages=historial,
+         )
 
     contenido = respuesta.get("message", {}).get("content", "")
     if contenido:
-        print(f"{servidor_mcp.Color.ASSISTANT}Claude‑Local:{servidor_mcp.Color.RESET} {contenido}")
+        logo.console.print(f"[{Color.ASSISTANT}]Rolux:[/{Color.ASSISTANT}]")
+        logo.console.print(Markdown(contenido))
     else:
-        print(f"{servidor_mcp.Color.ASSISTANT}Claude‑Local:{servidor_mcp.Color.RESET} (sin contenido)")
+        logo.console.print(f"[{Color.ASSISTANT}]\n[/{Color.ASSISTANT}]")
 
-    print("\n")
-
-
-
-
-
-
-
-
-
-
-
+    logo.console.print()
 
 
 # ============================================================
@@ -199,17 +190,17 @@ def claude_chat(modelo, mensaje_usuario):
 # 1. Configuración del modelo (Asegúrate de tenerlo: `ollama pull llama3.2`)
 MODELO = "gemma4:31b-cloud" # "qwen3:0.6b" 
 def iniciar_consola():
-    print(f"{servidor_mcp.Color.GRAY}=== Claude‑Local (Ollama + MCP) ==={servidor_mcp.Color.RESET}")
-    print(f"{servidor_mcp.Color.GRAY}Escribe 'salir' para terminar.{servidor_mcp.Color.RESET}")
-
+    logo.mostrar_logo()
+    
     while True:
         try:
-            user = input(f"{servidor_mcp.Color.USER}Tú:{servidor_mcp.Color.RESET} ")
+            user = logo.console.input(f"[{Color.USER}]Tú:[/{Color.USER}] ")
         except KeyboardInterrupt:
-            print("\nSaliendo…")
+            logo.console.print("\nSaliendo… \n Gracias por usar Rolux. ¡Hasta luego!")
             break
 
         if user.lower() in ["salir", "exit", "quit"]:
+            logo.console.print(f"\nSaliendo… \n [{Color.GREEN}]Gracias por usar Rolux. ¡Hasta luego!")
             break
 
         claude_chat(MODELO, user)
