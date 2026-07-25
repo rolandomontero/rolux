@@ -8,7 +8,7 @@ from pathlib import Path
 sys.modules.setdefault("ollama", types.SimpleNamespace(chat=lambda *args, **kwargs: []))
 sys.modules.setdefault("servidor_mcp", types.SimpleNamespace(crear_presentacion_desde_plantilla=lambda *args, **kwargs: None))
 
-import cliente_claude
+import start
 
 
 class ProcesarReferenciasArchivoTests(unittest.TestCase):
@@ -18,7 +18,7 @@ class ProcesarReferenciasArchivoTests(unittest.TestCase):
             archivo.write_text("Contenido de instrucción", encoding="utf-8")
 
             mensaje = "Resume @file:clase 20.txt"
-            mensaje_procesado, archivos = cliente_claude.procesar_referencias_archivo(
+            mensaje_procesado, archivos = start.procesar_referencias_archivo(
                 mensaje,
                 base_dir=Path(tmpdir),
                 workspace_root=Path(tmpdir),
@@ -31,7 +31,7 @@ class ProcesarReferenciasArchivoTests(unittest.TestCase):
 
     def test_devuelve_mensaje_original_sin_referencias(self):
         mensaje = "Solo necesito una respuesta"
-        mensaje_procesado, archivos = cliente_claude.procesar_referencias_archivo(
+        mensaje_procesado, archivos = start.procesar_referencias_archivo(
             mensaje,
             base_dir=Path.cwd(),
             workspace_root=Path.cwd(),

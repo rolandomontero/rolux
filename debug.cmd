@@ -1,0 +1,1 @@
+"D:\AppServ\www\rolux\utp\Scripts\activate.bat" && start "Rolux UTP" /B "d:\AppServ\www\rolux\utp\Scripts\python.exe" "d:\AppServ\www\rolux\start.py" --modelo 0

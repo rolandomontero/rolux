@@ -1,5 +1,6 @@
 # cliente_claude_console.py
 import os
+import sys
 import json
 import logging
 
@@ -10,7 +11,7 @@ from rich.markdown import Markdown
 
 # Tools MCP reales
 import servidor_mcp
-from tools import TOOL_IMPL, OLLAMA_TOOLS 
+from tools import TOOL_IMPL, OLLAMA_TOOLS
 
 # ---------------------------------------------------------
 # 1) DESACTIVAR LOGS DE OLLAMA Y HTTPX
@@ -22,6 +23,7 @@ logging.getLogger("httpcore").setLevel(logging.ERROR)
 # Opcional: silenciar todos los logs del sistema
 # logging.basicConfig(level=logging.CRITICAL)
 
+
 def duracion(nanosegundos: int) -> str:
     """Convierte nanosegundos a mm:ss o hh:mm:ss"""
     segundos = nanosegundos / 1_000_000_000
@@ -32,6 +34,7 @@ def duracion(nanosegundos: int) -> str:
         return f"{h:02d}:{m:02d}:{s:02d}"
     return f"{m:02d}:{s:02d}"
 
+
 def tokens(n: int) -> str:
     """Convierte tokens a formato '120k', '1.5M', etc."""
     if n >= 1_000_000:
@@ -39,6 +42,7 @@ def tokens(n: int) -> str:
     if n >= 1_000:
         return f"{n/1_000:.0f}k"
     return str(n)
+
 
 # ============================================================
 # 2) CARGA DE SKILLS Y AGENTES
@@ -73,6 +77,32 @@ Sigue las reglas definidas en los agentes y skills cargados.
 """
 
 
+def _extract_message(respuesta):
+    """Normaliza la extracción del campo 'message' desde distintos tipos de respuesta.
+    Algunas versiones de la librería `ollama` devuelven objetos con atributos, otras dicts.
+    """
+    if respuesta is None:
+        return {}
+    # Si es un dict-like
+    try:
+        if isinstance(respuesta, dict):
+            return respuesta.get("message", {}) or {}
+    except Exception:
+        pass
+    # Si tiene atributo 'message'
+    if hasattr(respuesta, "message"):
+        try:
+            return getattr(respuesta, "message") or {}
+        except Exception:
+            return {}
+    # Si tiene método to_dict
+    if hasattr(respuesta, "to_dict"):
+        try:
+            return respuesta.to_dict().get("message", {}) or {}
+        except Exception:
+            return {}
+    return {}
+
 
 def claude_chat(modelo, mensaje_usuario):
     contexto = cargar_contexto()
@@ -99,28 +129,45 @@ def claude_chat(modelo, mensaje_usuario):
         spinner_style="green",
     ):
         # Primera llamada: permitimos al modelo generar tool calls
-        respuesta = ollama.chat(
-        model=modelo,
-        messages=historial,
-        tools=OLLAMA_TOOLS,
-    )
+        try:
+            respuesta = ollama.chat(
+                model=modelo,
+                messages=historial,
+                tools=OLLAMA_TOOLS,
+            )
+        except Exception as e:
+            # Mostrar información amigable y registrar detalle para depuración
+            console.print(
+                f"[{Color.ASSISTANT}]❌ Error al comunicarse con el servidor de Ollama: {e}[/{Color.ASSISTANT}]"
+            )
+            # Si la excepción tiene atributos adicionales (ej. ResponseError), mostrar texto si existe
+            try:
+                err_text = getattr(e, "args", [str(e)])[0]
+                console.print(f"[{Color.GRAY}]Detalles: {err_text}[/{Color.GRAY}]")
+            except Exception:
+                pass
+            # terminar la función para evitar más errores
+            return
 
     tokens_totales = (respuesta.prompt_eval_count or 0) + (respuesta.eval_count or 0)
 
     d = duracion(respuesta.total_duration or 0)
     t = tokens(tokens_totales)
 
-    console.print( f"[{Color.GRAY}] duración : {d}[/{Color.GRAY}]")  # duración : 01:12
-    console.print(f"[{Color.GRAY}] tokens   : {t}[/{Color.GRAY}]")    # tokens : 120k
+    console.print(f"[{Color.GRAY}] duración : {d}[/{Color.GRAY}]")  # duración : 01:12
+    console.print(f"[{Color.GRAY}] tokens   : {t}[/{Color.GRAY}]")  # tokens : 120k
 
-    tool_calls = respuesta.get("message", {}).get("tool_calls", [])
+    message = _extract_message(respuesta)
+    tool_calls = (message or {}).get("tool_calls", [])
 
     if tool_calls:
         for llamada in tool_calls:
             nombre = llamada["function"]["name"]
             args = llamada["function"].get("arguments", {})
 
-            console.print(f"[{Color.TOOL}] Llamando a la herramienta → {nombre}[/{Color.TOOL}]")
+            console.print(
+                f"[{Color.TOOL}] Llamando a la herramienta → {nombre}[/{Color.TOOL}]"
+            )
 
             if nombre not in TOOL_IMPL:
                 console.print(
@@ -140,14 +187,39 @@ def claude_chat(modelo, mensaje_usuario):
                 spinner="simpleDots",
                 spinner_style="green",
             ):
-                respuesta =ollama.chat(model=modelo, messages=historial)
+                try:
+                    respuesta = ollama.chat(model=modelo, messages=historial)
+                except Exception as e:
+                    console.print(
+                        f"[{Color.ASSISTANT}]❌ Error tras la llamada a la herramienta: {e}[/{Color.ASSISTANT}]"
+                    )
+                    try:
+                        err_text = getattr(e, "args", [str(e)])[0]
+                        console.print(
+                            f"[{Color.GRAY}]Detalles: {err_text}[/{Color.GRAY}]"
+                        )
+                    except Exception:
+                        pass
+                    # añadir una respuesta de error en el historial para que el modelo pueda continuar si es necesario
+                    historial.append(
+                        {
+                            "role": "tool",
+                            "name": nombre,
+                            "content": json.dumps({"error": str(e)}),
+                        }
+                    )
+                    # salir del bucle de tool_calls para evitar loops
+                    break
 
-    contenido = respuesta.get("message", {}).get("content", "")
+    message = _extract_message(respuesta)
+    contenido = (message or {}).get("content", "")
     if contenido:
         logo.console.print(f"[{Color.ASSISTANT}]👨‍🏫 Rolux:[/{Color.ASSISTANT}]")
         logo.console.print(Markdown(contenido))
     else:
-        logo.console.print(f"[{Color.ASSISTANT}]🤦‍♂️ Intente de nuevo.[/{Color.ASSISTANT}]")
+        logo.console.print(
+            f"[{Color.ASSISTANT}]🤦‍♂️ Intente de nuevo.[/{Color.ASSISTANT}]"
+        )
 
     logo.console.print()
 
@@ -156,13 +228,15 @@ def claude_chat(modelo, mensaje_usuario):
 # 5) LOOP INTERACTIVO ESTILO CLAUDE
 # ============================================================
 
-def iniciar_consola():
-# 1. Configuración del modelo (Asegúrate de tenerlo: `ollama pull llama3.2`)
-# MODELO = "gemma4:31b-cloud"  # "qwen3:0.6b"
-# MODELO = "qwen3:0.6b"  # Alternativa más ligera
-    MODELO = "minimax-m3:cloud"  # Alternativa más ligera
 
-
+def iniciar_consola(modelo=None):
+    # 1. Configuración del modelo (Asegúrate de tenerlo: `ollama pull llama3.2`)
+    # MODELO = "gemma4:31b-cloud"  # "qwen3:0.6b"
+    # MODELO = "qwen3:0.6b"  # Alternativa más ligera
+    # MODELO = "minimax-m3:cloud"  # Alternativa más ligera
+    MODELO = ["gemma4:31b-cloud", "qwen3:0.6b", "minimax-m3:cloud"][
+        modelo if modelo is not None else 0
+    ]  # Cambia el índice según el modelo deseado
 
     logo.mostrar_logo(MODELO)
 
@@ -182,5 +256,22 @@ def iniciar_consola():
         claude_chat(MODELO, user)
 
 
+def obtener_modelo(argv):
+    args = {}
+    for item in argv[1:]:
+        if "=" in item:
+            clave, valor = item.split("=", 1)
+            args[clave] = valor
+
+    valor = args.get("modelo", None)
+    if valor in (None, ""):
+        return 0
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return 0
+
+
 if __name__ == "__main__":
-    iniciar_consola()
+    modelo = obtener_modelo(sys.argv)
+    iniciar_consola(modelo)
