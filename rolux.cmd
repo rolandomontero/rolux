@@ -11,7 +11,7 @@ echo [0] gemma4:31b-cloud
 echo [1] qwen3:0.6b
 echo [2] minimax-m3:cloud
 echo.
-set /P entrada=Ingrese el número del modelo (0, 1 o 2) o presione Enter para salir: 
+set /P entrada=Ingrese el numero del modelo (0, 1 o 2) o presione Enter para salir: 
 
 REM Verificar si la entrada es un número válido (0, 1, o 2)
 for %%i in (0 1 2) do (
