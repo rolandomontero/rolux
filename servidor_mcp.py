@@ -129,7 +129,7 @@ def crear_presentacion(
     
 ) -> str:
     """
-    Crea una presentación basándose en una plantilla, reemplazando marcadores de posición y añadiendo diapositivas adicionales.
+    Se crea una presentación basándose en una plantilla, reemplazando marcadores de posición y añadiendo diapositivas adicionales.
 
     Args:
         plantilla_path: Ruta al archivo .pptx de la plantilla.

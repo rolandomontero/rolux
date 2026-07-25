@@ -17,43 +17,49 @@ class Color:
 __all__ = [
     "console",
     "Color",
-    "mostrar_logo",
+    "mostrar_logo"
 ]
 
 avatar = [
-"       o      ",
-"     ╔══╗     ",
-"     |o |    ",
+"     o        ",
+"     ====     ",
+"     |o |     ",
 "     | o|     ",
 "    ╱   o╲    ",
-"   ╱~~~~~ ╲   ",
-"  ╱▒▒▒▒▒▒▒ ╲  ",
-" ╰──────────╯ ", 
+"   ╱ ~~~~ ╲   ",
+"  |▒▒▒▒▒▒▒▒|  ",
+"  ╰────────╯  ", 
 ]
-# Definición del texto formateado
-text_0 = Text()
-text_0.append("Rolux UTP", style="bold green")
-text_0.append(" v0.1.2126", style="dim white")
 
-text_1 = Text("gemma4:31b-cloud · API Usage Billing", style="dim white")
-text_2 = Text(os.getcwd(), style="dim white")
-
-text_3 = Text("Powered by MC Lautaro's (c) 2026", style="dim white")
-text_4 = Text("================================", style=Color.GRAY)
-text_5 = Text("Asistente Pedagógico para el Aula", style=Color.GREEN)
-texts = [text_0, text_1, text_2, text_4,  text_3,text_4, text_5, ""]
 
 # Usamos console.print con el parámetro style para consistencia total
 
-def mostrar_logo():
+def mostrar_logo(model):
     """Muestra el logo y el banner inicial del asistente."""
     console.print("\n\n\n\n")
+
+    # Definición del texto formateado
+    text_0 = Text()
+    text_0.append("Rolux UTP", style="bold green")
+    text_0.append(" v0.1.2126", style="dim white")
+
+    text_1 = Text(f"{model} · API Usage Billing", style="dim white")
+    text_2 = Text(os.getcwd(), style="dim white")
+
+    text_3 = Text("Powered by MC Lautaro's (c) 2026", style="dim white")
+    text_4 = Text("================================", style=Color.GRAY)
+    text_5 = Text("Asistente Pedagógico para el Aula", style=Color.GREEN)
+    texts = [text_0, text_1, text_2, text_4,  text_3,text_4, text_5, ""]
 
     for img_line, txt in zip(avatar, texts):
         console.print(f"[{Color.GREEN}]{img_line}[/{Color.GREEN}]   ", end="")
         console.print(txt)
 
     console.print("\n\n", style=Color.GRAY)
+
+
+
+
 
 if __name__ == "__main__":
     mostrar_logo()

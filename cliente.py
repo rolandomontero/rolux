@@ -78,14 +78,15 @@ def skill_generar_clase_ppt(
 
     # 1) Placeholders de la plantilla
     reemplazos = {
-        "{{NC}}": "10",
+        "{{NC}}": nc if (nc := input("Número de clase (NC): ")) else "NC: 1",
+
         "{{CURSO}}": curso,
         "{{FECHA}}": fecha,
         "{{ASIGNATURA}}": asignatura,
         "{{UNIDAD}}": unidad if unidad else f"Unidad: {tema}",
         "{{CONTENIDOS}}": tema,
-        "{{HABILIDADES}}": "Análisis, reflexión, comunicación científica",
-        "{{VIRTUD}}": "RESPONSABILIDAD",
+        "{{HABILIDADES}}": habilidades if (habilidades := input("Habilidades: ")) else "Habilidades: [Especificar]",
+        "{{VIRTUD}}": virtud if (virtud := input("Virtud: ")) else "Virtud: [Especificar]",
         "{{OA}}": f"Comprender y aplicar conceptos clave sobre {tema.lower()}.",
         "{{OC}}": f"Al finalizar la clase, el estudiante será capaz de explicar y ejemplificar {tema.lower()}.",
     }
@@ -221,7 +222,7 @@ TOOLS = [
                     },
                     "nombre_archivo": {
                         "type": "string",
-                        "description": "Nombre del archivo de salida [<número de clase>_<fecha>_<tema>].pptx.",
+                        "description": "Nombre del archivo de salida [CLASE <número de clase>-<fecha:<yy><mm><dd>-<tema>].pptx.",
                     },
                 },
                 "required": ["asignatura", "tema", "curso"],
@@ -284,8 +285,7 @@ def ciclo_agente(model: str = MODELO):
             for call in tool_calls:
                 tool_name = call["function"]["name"]
                 args = call["function"].get("arguments", {}) or {}
-                print(f"[Agente] Ejecutando tool: {tool_name} con args: {args}")
-
+                
                 resultado_tool = despachar_tool(tool_name, args)
 
                 historial.append(
