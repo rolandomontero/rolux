@@ -42,7 +42,6 @@ if !modelo_seleccionado!==2 set "nombre_modelo=minimax-m3:cloud"
 echo.
 color 06
 echo Modelo seleccionado: !nombre_modelo!
-echo Activando entorno y ejecutando Python...
 color 07
 REM Activar el entorno virtual y ejecutar Python pasando el argumento --modelo
 call "D:\AppServ\www\rolux\utp\Scripts\activate.bat" && (

@@ -182,13 +182,15 @@ def claude_chat(modelo, mensaje_usuario):
                 {"role": "tool", "name": nombre, "content": json.dumps(resultado)}
             )
             # Segunda llamada: el modelo recibe el resultado de la tool y puede confirmar o explicar
+            explicacion  = logo.console.input(f"[{Color.ASSISTANT}]¿Quieres una explicación? [s/N]:[/{Color.ASSISTANT}] ")
             with console.status(
                 "[bold green]Esperando respuesta del modelo tras la tool call...",
                 spinner="simpleDots",
                 spinner_style="green",
             ):
                 try:
-                    respuesta = ollama.chat(model=modelo, messages=historial)
+                    respuesta = ollama.chat(model=modelo, messages=historial) if explicacion.lower() == "s" else "None"
+ 
                 except Exception as e:
                     console.print(
                         f"[{Color.ASSISTANT}]❌ Error tras la llamada a la herramienta: {e}[/{Color.ASSISTANT}]"
