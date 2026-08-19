@@ -8,7 +8,5 @@ export ANTHROPIC_MODEL=gemma4:31b-cloud
 # Activate virtual environment
 source "/Volumes/MisApps/Documentos/www/rolux/utp/bin/activate"
 
-python3 cliente_claude.py
-
 # Keep terminal open
 exec $SHELL

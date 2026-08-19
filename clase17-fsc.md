@@ -1,3 +1,4 @@
+Crea una presentacion desde plantilla de una clase
 ---
 name: "Clase 17 - Física - Ondas Electromágneticas"
 description: "Crea una clase desde plantilla de una clase de Física Número de clase 17 cuya Unidad es La Luz Para esta **clase de la unidad de Luz**, aquí tienes un **O.A. preciso** y **los tres momentos resumidos**, listos para el libro de clases y coherentes con los contenidos que mencionaste: origen atómico de la luz, fuentes luminosas, materiales, teorías de la luz y espectro electromagnético."
