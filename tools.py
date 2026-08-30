@@ -5,6 +5,7 @@ __all__ = ["TOOL_IMPL", "OLLAMA_TOOLS"]
 TOOL_IMPL = {
     "generar_clase_ppt": servidor_mcp.crear_presentacion,
     "read_file": servidor_mcp.read_file,
+    "generar_correos_ausentes": servidor_mcp.generar_correos_ausentes,
 }
 
 OLLAMA_TOOLS = [
@@ -22,7 +23,7 @@ OLLAMA_TOOLS = [
                     },
                     "reemplazos": {
                         "type": "object",
-                        "description": "Diccionario con los marcadores que deben estar en llaves dobles \{\{MARCADOR\}\} y sus valores.",
+                        "description": "Diccionario con los marcadores que deben estar en llaves dobles {{MARCADOR}} y sus valores.",
                         "items": {
                             "{{NC}}": {
                                 "type": "string",
@@ -92,7 +93,7 @@ OLLAMA_TOOLS = [
         "type": "function",
         "function": {
             "name": "read_file",
-            "description": "Lee el contenido de un archivo local y lo devuelve como texto.",
+            "description": "Lee el contenido de un archivo local y lo devuelve como texto. Úsala solo si el usuario pide leer, mostrar o analizar el archivo; no la uses para cargar una plantilla de correo en generar_correos_ausentes.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -102,6 +103,54 @@ OLLAMA_TOOLS = [
                     }
                 },
                 "required": ["path"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generar_correos_ausentes",
+            "description": "Genera borradores o envía correos de evaluaciones atrasadas desde una planilla Excel. Para alumnos ausentes, recuperaciones o pruebas atrasadas, usa esta herramienta directamente y pasa cualquier archivo de plantilla mediante el parámetro plantilla; no leas la plantilla con read_file.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "fecha": {
+                        "type": "string",
+                        "description": "Fecha de la evaluación: AAAA-MM-DD, DD/MM/AAAA o DD-MM-AAAA.",
+                        "default": "2026-08-26",
+                    },
+                    "excel": {
+                        "type": "string",
+                        "description": "Ruta de la planilla Excel.",
+                        "default": "AUSENTE.xlsx",
+                    },
+                    "plantilla": {
+                        "type": "string",
+                        "description": "Ruta de la plantilla de correo.",
+                        "default": "carta_ausentes.txt",
+                    },
+                    "plantilla_talento": {
+                        "type": "string",
+                        "description": "Plantilla para filas cuya columna Talento, Talentoso o Talentos indique sí/si, true, 1, x o talento.",
+                        "default": "carta_talento.txt",
+                    },
+                    "remitente": {
+                        "type": "string",
+                        "description": "Cuenta de Outlook que se usará como remitente.",
+                        "default": "rolando.montero@colsanjavier.cl",
+                    },
+                    "enviar": {
+                        "type": "boolean",
+                        "description": "Envía los correos. Usar true solo con autorización explícita.",
+                        "default": False,
+                    },
+                    "borradores": {
+                        "type": "boolean",
+                        "description": "Guarda los mensajes como borradores.",
+                        "default": True,
+                    },
+                },
+                "required": [],
             },
         },
     },

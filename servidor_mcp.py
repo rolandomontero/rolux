@@ -214,6 +214,30 @@ def read_file(path: str):
         
     return {"path": str(ruta_archivo), "content": contenido}
 
+@mcp.tool()
+def generar_correos_ausentes(
+    fecha: str = "2026-08-26",
+    excel: str = "AUSENTE.xlsx",
+    plantilla: str = "carta_ausentes.txt",
+    plantilla_talento: str = "carta_talento.txt",
+    remitente: str = "rolando.montero@colsanjavier.cl",
+    enviar: bool = False,
+    borradores: bool = True,
+) -> str:
+    """
+    Genera borradores o envía correos de ausentes desde Excel y una plantilla.
+    """
+    from ausentes import generar_correos_ausentes
+    return generar_correos_ausentes(
+        fecha=fecha,
+        excel=excel,
+        plantilla=plantilla,
+        plantilla_talento=plantilla_talento,
+        remitente=remitente,
+        enviar=enviar,
+        borradores=borradores,
+    )
+
 # Si ejecutamos este script directamente, arranca el servidor MCP
 if __name__ == "__main__":
     mcp.run()

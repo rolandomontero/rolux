@@ -3,7 +3,7 @@ Estimada familia de [Alumno]
 ·Junto con saludarles, informamos que su hij[S] debe realizar la siguiente evaluación que tiene pendiente:
 · Asignatura: Física
 · Fecha de realización: [fecha]
-· Horario de inicio: 15.30 am
+· Horario de inicio: 8.30 am
 · Duración: 70 minutos.
 · Lugar: Sala de Proyectos 2 o 3
 · Contenidos a evaluar:

@@ -8,7 +8,7 @@ cls
 echo Seleccione el modelo a utilizar:
 echo.
 echo [0] gemma4:31b-cloud
-echo [1] qwen3:0.6b
+echo [1] qwen3:0.6b-local
 echo [2] minimax-m3:cloud
 echo.
 set /P entrada=Ingrese el numero del modelo (0, 1 o 2) o presione Enter para salir: 

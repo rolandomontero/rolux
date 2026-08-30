@@ -29,12 +29,14 @@ OL_FOLDER_DRAFTS = 16
 
 def parsear_fecha(valor: str) -> date:
     """Acepta una fecha ISO (AAAA-MM-DD) o el formato DD/MM/AAAA."""
-    for formato in ("%Y-%m-%d", "%d/%m/%Y"):
+    for formato in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
         try:
             return datetime.strptime(valor, formato).date()
         except ValueError:
             continue
-    raise argparse.ArgumentTypeError("La fecha debe tener formato AAAA-MM-DD o DD/MM/AAAA")
+    raise argparse.ArgumentTypeError(
+        "La fecha debe tener formato AAAA-MM-DD, DD/MM/AAAA o DD-MM-AAAA"
+    )
 
 
 def limpiar_correo(valor: object) -> str | None:
@@ -57,18 +59,36 @@ def construir_mensaje(plantilla: str, fila: dict[str, object], fecha: date) -> s
     return plantilla
 
 
-def cargar_mensajes(ruta_excel: Path, ruta_plantilla: Path, fecha: date) -> list[dict[str, str]]:
+def valor_verdadero(valor: object) -> bool:
+    return str(valor or "").strip().lower() in {"si", "sí", "s", "true", "1", "x", "talento"}
+
+
+def cargar_mensajes(
+    ruta_excel: Path,
+    ruta_plantilla: Path,
+    fecha: date,
+    ruta_plantilla_talento: Path | None = None,
+) -> list[dict[str, str]]:
     libro = openpyxl.load_workbook(ruta_excel, data_only=True, read_only=True)
     hoja = libro.active
     encabezados = [str(celda.value or "").strip() for celda in next(hoja.iter_rows())]
     requeridos = {
-        "Alumno", "email alumno", "Mail Padre", "Mail Madre", "S", "PJ", "JD", "Curso","Contenido"
+        "Alumno", "email alumno", "Mail Padre", "Mail Madre", "S", "PJ", "JD", "Curso", "Contenido"
     }
     faltantes = requeridos - set(encabezados)
     if faltantes:
         raise ValueError(f"Faltan columnas en la planilla: {', '.join(sorted(faltantes))}")
 
     plantilla = ruta_plantilla.read_text(encoding="utf-8")
+    plantilla_talento = (
+        ruta_plantilla_talento.read_text(encoding="utf-8")
+        if ruta_plantilla_talento
+        else plantilla
+    )
+    columna_talento = next(
+        (columna for columna in ("Talento", "talento", "Talentoso", "Talentos") if columna in encabezados),
+        None,
+    )
     mensajes = []
     for numero_fila, valores in enumerate(hoja.iter_rows(min_row=2, values_only=True), start=2):
         fila = dict(zip(encabezados, valores))
@@ -88,6 +108,7 @@ def cargar_mensajes(ruta_excel: Path, ruta_plantilla: Path, fecha: date) -> list
         if CORREO_COPIA_FIJO.lower() not in {item.lower() for item in copia}:
             copia.append(CORREO_COPIA_FIJO)
 
+        plantilla_fila = plantilla_talento if columna_talento and valor_verdadero(fila.get(columna_talento)) else plantilla
         mensajes.append({
             "alumno": alumno,
             "curso": str(fila.get("Curso") or "").strip(),
@@ -133,16 +154,33 @@ def ejecutar(mensajes: list[dict[str, str]], enviar: bool, borradores: bool, rem
         if enviar:
             #correo.Send()
             print(f"Enviado: {mensaje['alumno']}")
-        else:
+        elif borradores:
             correo.Save()
+            carpeta_borradores = cuenta.DeliveryStore.GetDefaultFolder(OL_FOLDER_DRAFTS)
+            correo.Move(carpeta_borradores)
             print(f"Guardado como borrador: {mensaje['alumno']}")
 
-        carpeta_borradores = (
-                     cuenta.DeliveryStore.GetDefaultFolder(OL_FOLDER_DRAFTS))
-        
-        correo = correo.Move(carpeta_borradores)
-        
-            
+
+def generar_correos_ausentes(
+    fecha: str = "2026-08-26",
+    excel: str = "AUSENTE.xlsx",
+    plantilla: str = "carta_ausentes.txt",
+    plantilla_talento: str = "carta_talento.txt",
+    remitente: str = CORREO_REMITENTE,
+    enviar: bool = False,
+    borradores: bool = True,
+) -> str:
+    """Genera borradores o envía avisos desde la planilla Excel."""
+    fecha_convertida = parsear_fecha(fecha)
+    mensajes = cargar_mensajes(
+        Path(excel),
+        Path(plantilla),
+        fecha_convertida,
+        Path(plantilla_talento),
+    )
+    ejecutar(mensajes, enviar=enviar, borradores=borradores, remitente=remitente)
+    accion = "enviados" if enviar else "guardados como borradores" if borradores else "mostrados en vista previa"
+    return f"{len(mensajes)} correos {accion}."
 
 
 def main() -> None:
@@ -156,9 +194,14 @@ def main() -> None:
     grupo.add_argument("--borradores", action="store_true", help="Guarda los correos en Borradores de Outlook")
     args = parser.parse_args()
 
-    mensajes = cargar_mensajes(args.excel, args.plantilla, args.fecha)
-    print(f"Mensajes preparados: {len(mensajes)}")
-    ejecutar(mensajes, enviar=args.enviar, borradores=args.borradores, remitente=args.remitente)
+    print(generar_correos_ausentes(
+        fecha=args.fecha.isoformat(),
+        excel=str(args.excel),
+        plantilla=str(args.plantilla),
+        remitente=args.remitente,
+        enviar=args.enviar,
+        borradores=args.borradores,
+    ))
 
 
 if __name__ == "__main__":

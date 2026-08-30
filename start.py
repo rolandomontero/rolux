@@ -104,7 +104,7 @@ def _extract_message(respuesta):
     return {}
 
 
-def claude_chat(modelo, mensaje_usuario):
+def chat(modelo, mensaje_usuario):
     contexto = cargar_contexto()
 
     mensaje_procesado, archivos_leidos = servidor_mcp.procesar_referencias_archivo(
@@ -218,10 +218,6 @@ def claude_chat(modelo, mensaje_usuario):
     if contenido:
         logo.console.print(f"[{Color.ASSISTANT}]👨‍🏫 Rolux:[/{Color.ASSISTANT}]")
         logo.console.print(Markdown(contenido))
-    else:
-        logo.console.print(
-            f"[{Color.ASSISTANT}]🤦‍♂️ Intente de nuevo.[/{Color.ASSISTANT}]"
-        )
 
     logo.console.print()
 
@@ -253,9 +249,10 @@ def iniciar_consola(modelo=None):
             logo.console.print(
                 f"\nSaliendo… \n [{Color.GREEN}]Gracias por usar Rolux. ¡Hasta luego!"
             )
+            r=input("Presione Enter para salir...")
             break
 
-        claude_chat(MODELO, user)
+        chat(MODELO, user)
 
 
 def obtener_modelo(argv):
