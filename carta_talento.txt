@@ -1,0 +1,19 @@
+Estimada familia de [Alumno]
+
+·Junto con saludarles, informamos que su hij[S] debe realizar la siguiente evaluación que tiene pendiente:
+· Asignatura: Física
+· Fecha de realización: [fecha]
+· Horario de inicio: 15.30
+· Duración: 70 minutos.
+· Lugar: Sala de Proyectos 2 o 3
+· Contenidos a evaluar:
+[Contenido]
+
+NOTA: Para esta evaluación él o la estudiante, podrá contar con su diccionario de uso personal. Debe asistir con el material a rendir la evaluación. 
+
+Recordatorio según Reglamento de Evaluación “Los y las estudiantes que no se presenten a rendir una evaluación atrasada y no justifiquen, obtendrán la nota mínima (1.0. La justificación en el caso de las pruebas atrasadas solo será  hasta las 11:00 del día sábado que fue citado para estudiantes de III y IV Ciclo y hasta el lunes inmediatamente siguiente en el caso de II Ciclo” (página 24).
+
+Atentamente,
+
+Rolando E. Montero A.
+Profesor de Física
