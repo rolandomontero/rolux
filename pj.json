@@ -1,0 +1,60 @@
+{
+  "CURSOS": [
+    {
+      "Curso": "I° A",
+      "PJ": "Valeria Radulovich",
+      "email": "vradulovich@colsanjavier.cl",
+      "psicopedagogo": "Karen Ovalle",
+      "email_psicopedagogo": "karen.ovalle@colsanjavier.cl"
+    },
+    {
+      "Curso": "I° B",
+      "PJ": "Paulina Reyes",
+      "email": "preyes@colsanjavier.cl",
+      "psicopedagogo": "Karen Ovalle",
+      "email_psicopedagogo": "karen.ovalle@colsanjavier.cl"
+    },
+    {
+      "Curso": "I° C",
+      "PJ": "Milena Ormazábal",
+      "email": "mormazabal@colsanjavier.cl",
+      "psicopedagogo": "Karen Ovalle",
+      "email_psicopedagogo": "karen.ovalle@colsanjavier.cl"
+    },
+    {
+      "Curso": "II° A",
+      "PJ": "Francisco Ruiz",
+      "email": "francisco.ruiz@colsanjavier.cl",
+      "psicopedagogo": "Ma José Mora",
+      "email_psicopedagogo": "mmora@colsanjavier.cl"
+    },
+    {
+      "Curso": "II° C",
+      "PJ": "Daniela Rojas",
+      "email": "daniela.rojas@colsanjavier.cl",
+      "psicopedagogo": "Ma José Mora",
+      "email_psicopedagogo": "mmora@colsanjavier.cl"
+    },
+    {
+      "Curso": "III° A",
+      "PJ": "René Mansilla Velásquez",
+      "email": "remansilla@colsanjavier.cl",
+      "psicopedagogo": "Ma José Mora",
+      "email_psicopedagogo": "mmora@colsanjavier.cl"
+    },
+    {
+      "Curso": "III° B",
+      "PJ": "Bernardita Cruz Rojas",
+      "email": "bernardita.cruz@colsanjavier.cl",
+      "psicopedagogo": "Ma José Mora",
+      "email_psicopedagogo": "mmora@colsanjavier.cl"
+    },
+    {
+      "Curso": "III° C",
+      "PJ": "Fernando Bucarey Barría",
+      "email": "fbucarey@colsanjavier.cl",
+      "psicopedagogo": "Ma José Mora",
+      "email_psicopedagogo": "mmora@colsanjavier.cl"
+    }
+  ]
+}
