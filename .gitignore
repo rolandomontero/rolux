@@ -4,4 +4,6 @@
 .DS_Store
 Icon?
 Icon
+google_sheets/
+credentials.json
 

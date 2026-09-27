@@ -76,3 +76,5 @@ uvicorn==0.48.0
 watchfiles==1.2.0
 websockets==16.0
 xlsxwriter==3.2.9
+google-api-python-client==2.200.0
+google-auth-oauthlib==1.4.1
