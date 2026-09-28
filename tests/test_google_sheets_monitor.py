@@ -4,6 +4,8 @@ import unittest
 from contextlib import redirect_stdout
 from datetime import datetime
 from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from google_sheets_monitor import (
     _imprimir_primeras_filas,
@@ -11,6 +13,7 @@ from google_sheets_monitor import (
     extraer_id_planilla,
     filtrar_correos,
     filtrar_curso,
+    guardar_curso_pandas,
 )
 
 
@@ -65,6 +68,16 @@ class GoogleSheetsMonitorTests(unittest.TestCase):
             filtrar_curso(rows, "1EM-A"),
             (["Nombre", "Curso"], [["Ana", "1EM-A"]]),
         )
+
+    def test_guarda_filas_filtradas_en_csv_con_pandas(self) -> None:
+        rows = [["Nombre", "Curso"], ["Ana", "1EM-A"], ["Luis", "1EM-B"]]
+        with TemporaryDirectory() as directory:
+            ruta = Path(directory) / "curso.csv"
+            self.assertEqual(guardar_curso_pandas(rows, "1EM-A", ruta), 1)
+            import pandas as pd
+
+            dataframe = pd.read_csv(ruta, dtype=str)
+            self.assertEqual(dataframe.to_dict(orient="records"), [{"Nombre": "Ana", "Curso": "1EM-A"}])
 
     def test_muestra_sin_filtrar_las_tres_primeras_filas(self) -> None:
         salida = StringIO()

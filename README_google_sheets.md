@@ -56,13 +56,13 @@ Para buscar un curso y un RUT y obtener los valores de las columnas H y K:
 La primera fila debe contener los encabezados `Curso` y `RUT`. La salida es una
 línea JSON por coincidencia, con el número de fila y los valores `H` y `K`.
 
-Para filtrar todas las filas del curso `1EM-A` y guardarlas en NumPy:
+Para filtrar todas las filas del curso `1EM-A` y guardarlas en CSV con pandas:
 
-`utp/bin/python google_sheets_monitor.py 'https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k/' --range 'A:K' --curso '1EM-A' --salida-curso 'google_sheets/curso_1EM-A.npz'`
+`utp/bin/python google_sheets_monitor.py 'https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k/' --range 'A:K' --curso '1EM-A' --salida-curso 'google_sheets/curso_1EM-A.csv'`
 
-El archivo `.npz` contiene `encabezados` y `datos`. Para abrirlo:
+El archivo `.csv` contiene los encabezados y datos filtrados. Para mostrarlo con pandas:
 
-`datos = np.load('google_sheets/curso_1EM-A.npz', allow_pickle=True)`
+`utp/bin/python mostrar_csv.py`
 
 - Primera ejecución: guarda la referencia inicial, sin marcar cambios.
 - Ejecuciones siguientes: compara los valores y enumera las filas con cambios.

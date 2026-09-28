@@ -249,22 +249,22 @@ def filtrar_curso(rows: list[list[Any]], curso: str, curso_header: str = "Curso"
     return headers, filtered_rows
 
 
-def guardar_curso_numpy(
+def guardar_curso_pandas(
     rows: list[list[Any]], curso: str, output_file: Path, curso_header: str = "Curso"
 ) -> int:
-    """Filtra un curso y lo guarda como archivo NumPy comprimido (.npz)."""
+    """Filtra un curso y lo guarda como CSV usando un DataFrame de pandas."""
+    if output_file.suffix.lower() != ".csv":
+        raise ValueError("El archivo de salida debe tener extensión .csv.")
     try:
-        import numpy as np
+        import pandas as pd
     except ImportError as error:
-        raise RuntimeError("Falta NumPy. Instálalo con: utp/bin/python -m pip install numpy") from error
+        raise RuntimeError("Falta pandas. Instálalo con: utp/bin/python -m pip install pandas") from error
 
     headers, filtered_rows = filtrar_curso(rows, curso, curso_header)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        output_file,
-        encabezados=np.array(headers, dtype=object),
-        datos=np.array(filtered_rows, dtype=object),
-    )
+    rows_with_fixed_width = [row[:len(headers)] + [""] * max(0, len(headers) - len(row)) for row in filtered_rows]
+    dataframe = pd.DataFrame(rows_with_fixed_width, columns=headers)
+    dataframe.to_csv(output_file, index=False, encoding="utf-8-sig")
     return len(filtered_rows)
 
 
@@ -382,13 +382,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("spreadsheet", help="URL o ID de la planilla compartida")
     parser.add_argument("--range", default="A:ZZ", help="Rango A1, por ejemplo 'Datos!A:Z'")
-    parser.add_argument("--curso", help="Filtra por el valor de la columna Curso y lo guarda en NumPy")
+    parser.add_argument("--curso", help="Filtra por el valor de la columna Curso y lo guarda en CSV con pandas")
     parser.add_argument("--rut", help="Filtra por el valor de la columna RUT y muestra H y K")
     parser.add_argument("--curso-header", default="Curso", help="Encabezado de la columna del curso")
     parser.add_argument("--rut-header", default="RUT", help="Encabezado de la columna del RUT")
     parser.add_argument(
-        "--salida-curso", type=Path, default=Path("google_sheets/curso_filtrado.npz"),
-        help="Archivo .npz donde se guardan los datos filtrados del curso",
+        "--salida-curso", type=Path, default=Path("google_sheets/curso_filtrado.csv"),
+        help="Archivo .csv donde se guardan los datos filtrados del curso",
     )
     parser.add_argument("--credentials", type=Path, default=Path("google_sheets/credentials.json"))
     parser.add_argument("--token", type=Path, default=Path("google_sheets/token.json"))
@@ -421,7 +421,7 @@ def main() -> int:
             if args.rut is not None:
                 _imprimir_correos(filtrar_correos(rows, args.curso, args.rut, args.curso_header, args.rut_header))
                 return 0
-            count = guardar_curso_numpy(rows, args.curso, args.salida_curso, args.curso_header)
+            count = guardar_curso_pandas(rows, args.curso, args.salida_curso, args.curso_header)
             print(f"{count} fila(s) del curso {args.curso} guardadas en {args.salida_curso}.")
             return 0
         result = verificar_cambios(
