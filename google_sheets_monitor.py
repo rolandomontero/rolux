@@ -114,24 +114,9 @@ def leer_planilla(
             )
             .execute()
         )
-        rows = response.get("values", [])
-        if mostrar_primeras_filas:
-            _imprimir_primeras_filas(rows)
-        return rows
     except HttpError as error:
         if error.resp.status != 400 or "Office file" not in str(error):
             raise
-        rows = _leer_archivo_office(spreadsheet_id, range_name, creds)
-        if mostrar_primeras_filas:
-            _imprimir_primeras_filas(rows)
-        return rows
-
-
-def _imprimir_primeras_filas(rows: list[list[Any]]) -> None:
-    print("\nPrimeras 3 filas sin filtrar:")
-    for row_number, row in enumerate(rows[:3], start=1):
-        print(f"Fila {row_number}: {json.dumps(row, ensure_ascii=False, default=str)}")
-
 
 def _leer_archivo_office(spreadsheet_id: str, range_name: str, credentials: Any) -> list[list[Any]]:
     """Descarga un Excel compartido y devuelve el rango de su hoja activa."""
@@ -171,9 +156,7 @@ def _numero_columna(column: str) -> int:
     return number
 
 
-def _normalizar_filas(rows: list[list[Any]]) -> list[list[Any]]:
     """Quita celdas y filas vacías solo al final, como hace la respuesta de Sheets."""
-    normalized = [list(row) for row in rows]
     while normalized and not any(value not in (None, "") for value in normalized[-1]):
         normalized.pop()
     for row in normalized:
@@ -182,8 +165,6 @@ def _normalizar_filas(rows: list[list[Any]]) -> list[list[Any]]:
     return normalized
 
 
-def _encontrar_encabezados(rows: list[list[Any]], requeridos: tuple[str, ...]) -> tuple[int, list[str]]:
-    for row_index, row in enumerate(rows[:10]):
         headers = [str(value or "").strip() for value in row]
         normalized_headers = {header.casefold() for header in headers}
         if all(requerido.casefold() in normalized_headers for requerido in requeridos):
@@ -194,14 +175,11 @@ def _encontrar_encabezados(rows: list[list[Any]], requeridos: tuple[str, ...]) -
 
 
 def filtrar_correos(
-    rows: list[list[Any]], curso: str, rut: str,
     curso_header: str = "Curso", rut_header: str = "RUT",
 ) -> list[dict[str, Any]]:
     """Filtra por curso y RUT y devuelve los valores de las columnas H y K."""
-    if not rows:
         return []
 
-    header_row_index, header_values = _encontrar_encabezados(rows, (curso_header, rut_header))
     headers = [value.casefold() for value in header_values]
     try:
         curso_index = headers.index(curso_header.strip().casefold())
@@ -215,7 +193,6 @@ def filtrar_correos(
         return str(valor or "").strip().casefold()
 
     resultados = []
-    for row_number, row in enumerate(rows[header_row_index + 1:], start=header_row_index + 2):
         if normalizar(row[curso_index] if curso_index < len(row) else "") != normalizar(curso):
             continue
         if normalizar(row[rut_index] if rut_index < len(row) else "") != normalizar(rut):
@@ -228,12 +205,9 @@ def filtrar_correos(
     return resultados
 
 
-def filtrar_curso(rows: list[list[Any]], curso: str, curso_header: str = "Curso") -> tuple[list[str], list[list[Any]]]:
     """Devuelve los encabezados y las filas que pertenecen a un curso."""
-    if not rows:
         return [], []
 
-    header_row_index, headers = _encontrar_encabezados(rows, (curso_header,))
     normalized_headers = [header.casefold() for header in headers]
     try:
         curso_index = normalized_headers.index(curso_header.strip().casefold())
@@ -243,14 +217,12 @@ def filtrar_curso(rows: list[list[Any]], curso: str, curso_header: str = "Curso"
     curso_buscado = str(curso).strip().casefold()
     filtered_rows = [
         list(row)
-        for row in rows[header_row_index + 1:]
         if str(row[curso_index] if curso_index < len(row) else "").strip().casefold() == curso_buscado
     ]
     return headers, filtered_rows
 
 
 def guardar_curso_pandas(
-    rows: list[list[Any]], curso: str, output_file: Path, curso_header: str = "Curso"
 ) -> int:
     """Filtra un curso y lo guarda como CSV usando un DataFrame de pandas."""
     if output_file.suffix.lower() != ".csv":
@@ -260,7 +232,6 @@ def guardar_curso_pandas(
     except ImportError as error:
         raise RuntimeError("Falta pandas. Instálalo con: utp/bin/python -m pip install pandas") from error
 
-    headers, filtered_rows = filtrar_curso(rows, curso, curso_header)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     rows_with_fixed_width = [row[:len(headers)] + [""] * max(0, len(headers) - len(row)) for row in filtered_rows]
     dataframe = pd.DataFrame(rows_with_fixed_width, columns=headers)
@@ -299,10 +270,10 @@ def _guardar_json(path: Path, data: dict[str, Any]) -> None:
 
 def verificar_cambios(
     spreadsheet: str,
-    range_name: str,
-    credentials_file: Path = Path("credentials.json"),
-    token_file: Path = Path(".google_sheets/token.json"),
-    snapshot_file: Path = Path(".google_sheets/snapshot.json"),
+    range_name: str, # .claude/google_sheets/credentials.json
+    credentials_file: Path = Path("google_sheets/credentials.json"),
+    token_file: Path = Path("google_sheets/token.json"),
+    snapshot_file: Path = Path("google_sheets/snapshot.json"),
     accept_current: bool = False,
 ) -> CheckResult:
     """Compara la hoja con la última versión aceptada y conserva el reporte pendiente."""
@@ -411,7 +382,6 @@ def main() -> int:
         if args.rut is not None and args.curso is None:
             parser.error("Debes indicar --curso junto con --rut.")
         if args.curso is not None:
-            rows = leer_planilla(
                 extraer_id_planilla(args.spreadsheet),
                 args.range,
                 args.credentials,
@@ -419,9 +389,7 @@ def main() -> int:
                 mostrar_primeras_filas=True,
             )
             if args.rut is not None:
-                _imprimir_correos(filtrar_correos(rows, args.curso, args.rut, args.curso_header, args.rut_header))
                 return 0
-            count = guardar_curso_pandas(rows, args.curso, args.salida_curso, args.curso_header)
             print(f"{count} fila(s) del curso {args.curso} guardadas en {args.salida_curso}.")
             return 0
         result = verificar_cambios(

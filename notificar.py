@@ -5,6 +5,9 @@ predeterminado solo muestra una vista previa; para enviar se debe indicar
 --enviar explícitamente.
 """
 
+# python google_sheets_monitor.py "https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k" --curso "1EM-B"
+
+
 from __future__ import annotations
 
 import argparse
@@ -16,6 +19,7 @@ from pathlib import Path
 import openpyxl
 import win32com.client
 
+PLANILLA_CATALOGO = "https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k"
 
 CORREO_COPIA_FIJO = "crojas@colsanjavier.cl; guillermo.garcia@colsanjavier.cl;"
 CORREO_REMITENTE = "rolando.montero@colsanjavier.cl"
