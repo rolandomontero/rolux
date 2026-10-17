@@ -1,1 +1,2 @@
-python notificar.py
+py notificar.py
+pause
