@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from google_sheets_monitor import (
+from planilla import (
     _imprimir_primeras_filas,
     comparar_filas,
     extraer_id_planilla,

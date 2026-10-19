@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import argparse
-from io import BytesIO
 import json
 import re
 from dataclasses import dataclass
+from datetime import date, datetime
+from io import BytesIO
 from pathlib import Path
 from typing import Any
+# planilla catalogo 2026
+# https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k
 
 
 SCOPES = [
@@ -84,6 +87,33 @@ def _autenticar(credentials_file: Path, token_file: Path) -> Any:
     return creds
 
 
+def _normalizar_filas(rows: list[list[Any]] | Any) -> list[list[Any]]:
+    """Quita celdas y filas vacías solo al final, como hace la respuesta de Sheets."""
+    normalized: list[list[Any]] = []
+    for row in rows:
+        if row is None:
+            continue
+        cells = list(row)
+        while cells and cells[-1] in (None, ""):
+            cells.pop()
+        normalized.append(cells)
+    while normalized and not any(value not in (None, "") for value in normalized[-1]):
+        normalized.pop()
+    return normalized
+
+
+def _buscar_fila_encabezados(rows: list[list[Any]], requeridos: list[str]) -> tuple[int, list[str]]:
+    """Busca la fila que contiene los nombres de encabezado esperados."""
+    for row_index, row in enumerate(_normalizar_filas(rows)):
+        headers = [str(value or "").strip() for value in row]
+        normalized_headers = {header.casefold() for header in headers}
+        if all(requerido.casefold() in normalized_headers for requerido in requeridos):
+            return row_index, headers
+    raise ValueError(
+        "No se encontró la fila de encabezados con: " + ", ".join(requeridos) + "."
+    )
+
+
 def leer_planilla(
     spreadsheet_id: str,
     range_name: str,
@@ -117,6 +147,13 @@ def leer_planilla(
     except HttpError as error:
         if error.resp.status != 400 or "Office file" not in str(error):
             raise
+        return _leer_archivo_office(spreadsheet_id, range_name, creds)
+
+    values = response.get("values", [])
+    if mostrar_primeras_filas:
+        _imprimir_primeras_filas(values)
+    return values
+
 
 def _leer_archivo_office(spreadsheet_id: str, range_name: str, credentials: Any) -> list[list[Any]]:
     """Descarga un Excel compartido y devuelve el rango de su hoja activa."""
@@ -156,34 +193,22 @@ def _numero_columna(column: str) -> int:
     return number
 
 
-    """Quita celdas y filas vacías solo al final, como hace la respuesta de Sheets."""
-    while normalized and not any(value not in (None, "") for value in normalized[-1]):
-        normalized.pop()
-    for row in normalized:
-        while row and row[-1] in (None, ""):
-            row.pop()
-    return normalized
-
-
-        headers = [str(value or "").strip() for value in row]
-        normalized_headers = {header.casefold() for header in headers}
-        if all(requerido.casefold() in normalized_headers for requerido in requeridos):
-            return row_index, headers
-    raise ValueError(
-        "No se encontró la fila de encabezados con: " + ", ".join(requeridos) + "."
-    )
-
-
 def filtrar_correos(
-    curso_header: str = "Curso", rut_header: str = "RUT",
+    rows: list[list[Any]],
+    curso: str,
+    rut: str,
+    curso_header: str = "Curso",
+    rut_header: str = "RUT",
 ) -> list[dict[str, Any]]:
     """Filtra por curso y RUT y devuelve los valores de las columnas H y K."""
+    if not rows:
         return []
 
-    headers = [value.casefold() for value in header_values]
+    header_row_index, headers = _buscar_fila_encabezados(rows, [curso_header, rut_header])
+    normalized_headers = [str(header or "").strip().casefold() for header in headers]
     try:
-        curso_index = headers.index(curso_header.strip().casefold())
-        rut_index = headers.index(rut_header.strip().casefold())
+        curso_index = normalized_headers.index(curso_header.strip().casefold())
+        rut_index = normalized_headers.index(rut_header.strip().casefold())
     except ValueError as error:
         raise ValueError(
             f"No se encontraron las columnas '{curso_header}' y '{rut_header}'."
@@ -192,37 +217,56 @@ def filtrar_correos(
     def normalizar(valor: Any) -> str:
         return str(valor or "").strip().casefold()
 
-    resultados = []
+    resultados: list[dict[str, Any]] = []
+    for row_number, row in enumerate(_normalizar_filas(rows), start=1):
+        if row_number <= header_row_index:
+            continue
         if normalizar(row[curso_index] if curso_index < len(row) else "") != normalizar(curso):
             continue
         if normalizar(row[rut_index] if rut_index < len(row) else "") != normalizar(rut):
             continue
-        resultados.append({
-            "fila": row_number,
-            "H": row[7] if len(row) > 7 else "",
-            "K": row[10] if len(row) > 10 else "",
-        })
+        resultados.append(
+            {
+                "fila": row_number,
+                "H": row[7] if len(row) > 7 else "",
+                "K": row[10] if len(row) > 10 else "",
+            }
+        )
     return resultados
 
 
+def filtrar_curso(
+    rows: list[list[Any]],
+    curso: str,
+    curso_header: str = "Curso",
+) -> tuple[list[str], list[list[Any]]]:
     """Devuelve los encabezados y las filas que pertenecen a un curso."""
+    if not rows:
         return [], []
 
-    normalized_headers = [header.casefold() for header in headers]
+    header_row_index, headers = _buscar_fila_encabezados(rows, [curso_header])
+    normalized_headers = [str(header or "").strip().casefold() for header in headers]
     try:
         curso_index = normalized_headers.index(curso_header.strip().casefold())
     except ValueError as error:
         raise ValueError(f"No se encontró la columna '{curso_header}'.") from error
 
     curso_buscado = str(curso).strip().casefold()
-    filtered_rows = [
-        list(row)
-        if str(row[curso_index] if curso_index < len(row) else "").strip().casefold() == curso_buscado
-    ]
+    filtered_rows: list[list[Any]] = []
+    for row_number, row in enumerate(_normalizar_filas(rows), start=1):
+        if row_number <= header_row_index:
+            continue
+        valor = row[curso_index] if curso_index < len(row) else ""
+        if str(valor or "").strip().casefold() == curso_buscado:
+            filtered_rows.append(list(row))
     return headers, filtered_rows
 
 
 def guardar_curso_pandas(
+    rows: list[list[Any]],
+    curso: str,
+    output_file: Path,
+    curso_header: str = "Curso",
 ) -> int:
     """Filtra un curso y lo guarda como CSV usando un DataFrame de pandas."""
     if output_file.suffix.lower() != ".csv":
@@ -231,9 +275,14 @@ def guardar_curso_pandas(
         import pandas as pd
     except ImportError as error:
         raise RuntimeError("Falta pandas. Instálalo con: utp/bin/python -m pip install pandas") from error
-
+    # AQUÍ: Se podría usar el parámetro index=False en to_csv para no guardar la columna de índice.
+    # Podrías eliminar algunas columnas si no son necesarias, por ejemplo: dataframe.drop(columns=["Columna1", "Columna2"], inplace=True)
+    headers, filtered_rows = filtrar_curso(rows, curso, curso_header)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    rows_with_fixed_width = [row[:len(headers)] + [""] * max(0, len(headers) - len(row)) for row in filtered_rows]
+    rows_with_fixed_width = [
+        row[: len(headers)] + [""] * max(0, len(headers) - len(row))
+        for row in filtered_rows
+    ]
     dataframe = pd.DataFrame(rows_with_fixed_width, columns=headers)
     dataframe.to_csv(output_file, index=False, encoding="utf-8-sig")
     return len(filtered_rows)
@@ -243,7 +292,7 @@ def comparar_filas(previous: list[list[Any]], current: list[list[Any]]) -> list[
     """Compara por número de fila; los números reportados son los de la hoja."""
     old_rows = _normalizar_filas(previous)
     new_rows = _normalizar_filas(current)
-    changes = []
+    changes: list[RowChange] = []
     for index in range(max(len(old_rows), len(new_rows))):
         old = old_rows[index] if index < len(old_rows) else None
         new = new_rows[index] if index < len(new_rows) else None
@@ -268,9 +317,19 @@ def _guardar_json(path: Path, data: dict[str, Any]) -> None:
         pass
 
 
+def _imprimir_primeras_filas(rows: list[list[Any]], max_filas: int = 3) -> None:
+    """Imprime hasta las primeras filas del contenido como ayuda de depuración."""
+    for index, row in enumerate(rows[:max_filas], start=1):
+        valores = [
+            valor.strftime("%Y-%m-%d %H:%M:%S") if isinstance(valor, (datetime, date)) else str(valor)
+            for valor in row
+        ]
+        print(f"Fila {index}: {json.dumps(valores, ensure_ascii=False)}")
+
+
 def verificar_cambios(
     spreadsheet: str,
-    range_name: str, # .claude/google_sheets/credentials.json
+    range_name: str,
     credentials_file: Path = Path("google_sheets/credentials.json"),
     token_file: Path = Path("google_sheets/token.json"),
     snapshot_file: Path = Path("google_sheets/snapshot.json"),
@@ -280,7 +339,10 @@ def verificar_cambios(
     spreadsheet_id = extraer_id_planilla(spreadsheet)
     current = _normalizar_filas(
         leer_planilla(
-            spreadsheet_id, range_name, credentials_file, token_file,
+            spreadsheet_id,
+            range_name,
+            credentials_file,
+            token_file,
             mostrar_primeras_filas=True,
         )
     )
@@ -358,22 +420,27 @@ def main() -> int:
     parser.add_argument("--curso-header", default="Curso", help="Encabezado de la columna del curso")
     parser.add_argument("--rut-header", default="RUT", help="Encabezado de la columna del RUT")
     parser.add_argument(
-        "--salida-curso", type=Path, default=Path("google_sheets/curso_filtrado.csv"),
+        "--salida-curso",
+        type=Path,
+        default=Path("google_sheets/curso_filtrado.csv"),
         help="Archivo .csv donde se guardan los datos filtrados del curso",
     )
     parser.add_argument("--credentials", type=Path, default=Path("google_sheets/credentials.json"))
     parser.add_argument("--token", type=Path, default=Path("google_sheets/token.json"))
     parser.add_argument("--snapshot", type=Path, default=Path("google_sheets/snapshot.json"))
     parser.add_argument(
-        "--accept-current", action="store_true",
+        "--accept-current",
+        action="store_true",
         help="Guarda los datos actuales como nueva referencia, aceptando los cambios.",
     )
     parser.add_argument(
-        "--details", action="store_true",
+        "--details",
+        action="store_true",
         help="Muestra valores anteriores y actuales (pueden incluir datos personales).",
     )
     parser.add_argument(
-        "--fail-on-change", action="store_true",
+        "--fail-on-change",
+        action="store_true",
         help="Termina con código 1 si detecta cambios, para detener una tarea automatizada.",
     )
     args = parser.parse_args()
@@ -381,17 +448,31 @@ def main() -> int:
     try:
         if args.rut is not None and args.curso is None:
             parser.error("Debes indicar --curso junto con --rut.")
+
         if args.curso is not None:
+            if args.rut is not None:
+                rows = leer_planilla(
+                    extraer_id_planilla(args.spreadsheet),
+                    args.range,
+                    args.credentials,
+                    args.token,
+                    mostrar_primeras_filas=True,
+                )
+                resultados = filtrar_correos(rows, args.curso, args.rut, args.curso_header, args.rut_header)
+                _imprimir_correos(resultados)
+                return 0
+
+            rows = leer_planilla(
                 extraer_id_planilla(args.spreadsheet),
                 args.range,
                 args.credentials,
                 args.token,
                 mostrar_primeras_filas=True,
             )
-            if args.rut is not None:
-                return 0
+            count = guardar_curso_pandas(rows, args.curso, args.salida_curso, args.curso_header)
             print(f"{count} fila(s) del curso {args.curso} guardadas en {args.salida_curso}.")
             return 0
+
         result = verificar_cambios(
             args.spreadsheet,
             args.range,

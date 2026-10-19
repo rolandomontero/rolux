@@ -19,6 +19,19 @@
       "console": "integratedTerminal",
       "args": ["--borradores"]
     },
-    
+    {
+      "name": "Python: Planilla 2EM-A",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/planilla.py",
+      "console": "integratedTerminal",
+      "args": [
+        "https://docs.google.com/spreadsheets/d/1o_RJX87N5u1wD5czzztli-RAt-sFYF_k/",
+        "--curso",
+        "2EM-A",
+        "--salida-curso",
+        "google_sheets/curso_2EM-A.csv"
+      ]
+    },
   ]
 }
