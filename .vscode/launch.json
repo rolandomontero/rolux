@@ -30,7 +30,9 @@
         "--curso",
         "2EM-A",
         "--salida-curso",
-        "google_sheets/curso_2EM-A.csv"
+        "google_sheets/curso_2EM-A.csv",
+        "--range",
+        "A:B;H:H;K:K"
       ]
     },
   ]
